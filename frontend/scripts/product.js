@@ -69,6 +69,9 @@ viewedProducts.unshift({
     brand:
         currentProduct.brand,
 
+    category:
+        currentProduct.category,
+
     price:
         currentProduct.price,
 
@@ -103,6 +106,22 @@ const qtyInput =
     document.getElementById(
         "product-qty"
     );
+qtyInput.addEventListener(
+    "input",
+    () => {
+
+        if(
+            qtyInput.value < 1
+            ||
+            isNaN(qtyInput.value)
+        ){
+
+            qtyInput.value = 1;
+
+        }
+
+    }
+);
 
 // =============================
 // RENDER PRODUCT
@@ -145,6 +164,79 @@ document.getElementById(
     "product-rating-text"
 ).innerText =
     `(${currentProduct.rating || 4.5} Ratings)`;
+
+const ratingContainer =
+    document.querySelector(
+        ".product-rating"
+    );
+
+const rating =
+    Math.round(
+        currentProduct.rating || 4.5
+    );
+
+let starsHTML = "";
+
+for(
+    let i = 0;
+    i < 5;
+    i++
+){
+
+    if(i < rating){
+
+        starsHTML += `
+            <i class="fas fa-star"></i>
+        `;
+
+    }else{
+
+        starsHTML += `
+            <i class="far fa-star"></i>
+        `;
+
+    }
+
+}
+
+ratingContainer.innerHTML = `
+    ${starsHTML}
+
+    <span id="product-rating-text">
+        (${currentProduct.rating || 4.5} Ratings)
+    </span>
+`;
+
+const deliveryDate =
+    new Date();
+
+deliveryDate.setDate(
+    deliveryDate.getDate() + 4
+);
+
+const formattedDelivery =
+    deliveryDate.toDateString();
+
+const deliveryElement =
+    document.createElement("p");
+
+deliveryElement.classList.add(
+    "delivery-date"
+);
+
+deliveryElement.innerHTML = `
+    <i class="fas fa-truck"></i>
+
+    Delivery by:
+    
+    ${formattedDelivery}
+`;
+
+document.querySelector(
+    ".product-top-meta"
+).appendChild(
+    deliveryElement
+);
 
 // =============================
 // PRODUCT VARIANTS
@@ -252,6 +344,17 @@ function updateVariant(){
 
     variantStock.innerText =
         stock;
+    if(stock <= 3){
+
+        variantStock.style.color =
+            "red";
+
+    }else{
+
+        variantStock.style.color =
+            "#088178";
+
+    }
 
     mainImage.src =
         productVariants[
@@ -340,22 +443,25 @@ updateVariant();
 
 mainImage.src =
     currentProduct.image;
+const galleryImages = [
+    currentProduct.image,
+    "../assets/images/f2.jpg",
+    "../assets/images/f3.jpg",
+    "../assets/images/f4.jpg"
+];
 
-smallImages.forEach((image) => {
-
+smallImages.forEach((image, index) => {
     image.src =
-        currentProduct.image;
+        galleryImages[index];
 
     image.addEventListener(
         "click",
         () => {
-
             mainImage.src =
-                image.src;
+                galleryImages[index];
 
         }
     );
-
 });
 
 // =============================
@@ -367,10 +473,18 @@ document.getElementById(
 ).addEventListener(
     "click",
     () => {
+        const currentVariantStock =
+            productVariants[
+                selectedColor
+            ][selectedSize];
 
-        qtyInput.value =
-            parseInt(qtyInput.value) + 1;
-
+        if(
+            parseInt(qtyInput.value)
+            < currentVariantStock
+        ){
+            qtyInput.value =
+                parseInt(qtyInput.value) + 1;
+        }
     }
 );
 
@@ -391,100 +505,43 @@ document.getElementById(
 
     }
 );
-
 // =============================
 // ADD TO CART
 // =============================
+document.getElementById("add-to-cart-btn").addEventListener("click", () => {
+    const currentVariantStock = productVariants[selectedColor][selectedSize];
 
-document.getElementById(
-    "add-to-cart-btn"
-).addEventListener(
-    "click",
-    () => {
-
-        if(
-            currentProduct.stock === 0
-        ){
-
-            alert(
-                "Product is out of stock!"
-            );
-
-            return;
-
-        }
-
-        if(
-            parseInt(qtyInput.value)
-            > currentProduct.stock
-        ){
-
-            alert(
-                "Selected quantity exceeds stock!"
-            );
-
-            return;
-
-        }
-
-        const cart =
-            JSON.parse(
-                localStorage.getItem(
-                    "cart"
-                )
-            ) || [];
-
-        const item = {
-
-            name:
-                currentProduct.name,
-
-            price:
-                `₹${currentProduct.price}`,
-
-            img:
-                mainImage.src,
-
-            color:
-                selectedColor,
-
-            size:
-                selectedSize,
-
-            qty:
-                parseInt(
-                    qtyInput.value
-                )
-            
-        };
-
-        const existing =
-            cart.find(
-                (p) =>
-                    p.name === item.name
-            );
-
-        if(existing){
-
-            existing.qty += item.qty;
-
-        }else{
-
-            cart.push(item);
-
-        }
-
-        localStorage.setItem(
-            "cart",
-            JSON.stringify(cart)
-        );
-
-        alert(
-            "Product added to cart!"
-        );
-
+    if(currentVariantStock <= 0){
+        alert("Selected variant is out of stock!");
+        return;
     }
-);
+    if(parseInt(qtyInput.value) > currentVariantStock){
+        alert("Selected quantity exceeds available stock!");
+        return;
+    }
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const item = {
+        id: currentProduct.id,
+        name: currentProduct.name,
+        price: `₹${currentProduct.price}`,
+        img: mainImage.src,
+        color: selectedColor,
+        size: selectedSize,
+        qty: parseInt(qtyInput.value)
+    };
+
+    const existing = cart.find(p => p.id === item.id && p.color === item.color && p.size === item.size);
+    if(existing){
+        existing.qty += item.qty;
+    } else {
+        cart.push(item);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert("Product added to cart!");
+    // Do NOT reduce stock here; stock reduction happens on checkout/purchase
+});
 
 // =============================
 // BUY NOW
@@ -496,25 +553,56 @@ document.getElementById(
     "click",
     () => {
 
+        const currentVariantStock =
+            productVariants[
+                selectedColor
+            ][selectedSize];
+
+        if(currentVariantStock <= 0){
+
+            alert(
+                "Selected variant is out of stock!"
+            );
+
+            return;
+
+        }
+
+        if(
+            parseInt(qtyInput.value)
+            > currentVariantStock
+        ){
+
+            alert(
+                "Selected quantity exceeds available stock!"
+            );
+
+            return;
+
+        }
+
         const cart = [];
 
         cart.push({
 
+            id:
+                currentProduct.id,
+
             name:
                 currentProduct.name,
-                
+
             price:
                 `₹${currentProduct.price}`,
-                
+
             img:
                 mainImage.src,
-                
+
             color:
                 selectedColor,
-                
+
             size:
                 selectedSize,
-                
+
             qty:
                 parseInt(
                     qtyInput.value
@@ -533,66 +621,59 @@ document.getElementById(
     }
 );
 
-// =============================
-// WISHLIST
-// =============================
+const shareButton =
+    document.createElement(
+        "button"
+    );
 
-document.getElementById(
-    "wishlist-btn"
-).addEventListener(
+shareButton.id =
+    "share-btn";
+
+shareButton.innerHTML = `
+    <i class="fas fa-share-alt"></i>
+
+    Share
+`;
+
+document.querySelector(
+    ".product-buttons"
+).appendChild(
+    shareButton
+);
+
+shareButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
-        let wishlist =
-            JSON.parse(
-                localStorage.getItem(
-                    "wishlist"
-                )
-            ) || [];
+        if(!navigator.share){
 
-        const exists =
-            wishlist.find(
-                (item) =>
-                    item.name ===
-                    currentProduct.name
+            alert(
+                "Sharing not supported on this browser."
             );
 
-        if(!exists){
+            return;
 
-            wishlist.push({
+        }
 
-                id:
-                    currentProduct.id,
+        try{
 
-                name:
+            await navigator.share({
+
+                title:
                     currentProduct.name,
 
-                brand:
-                    currentProduct.brand,
+                text:
+                    currentProduct.description,
 
-                price:
-                    currentProduct.price,
-
-                image:
-                    currentProduct.image
+                url:
+                    window.location.href
 
             });
 
-            localStorage.setItem(
-                "wishlist",
-                JSON.stringify(
-                    wishlist
-                )
-            );
+        }catch(error){
 
-            alert(
-                "Added to wishlist!"
-            );
-
-        }else{
-
-            alert(
-                "Already in wishlist!"
+            console.log(
+                "Share cancelled or unsupported."
             );
 
         }
@@ -601,71 +682,80 @@ document.getElementById(
 );
 
 // =============================
+// WISHLIST
+// =============================
+const wishlistBtn = document.getElementById("wishlist-btn");
+
+function updateWishlistButton(){
+    const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+    const exists = wishlist.find(item => item.id === currentProduct.id);
+    wishlistBtn.innerHTML = exists
+        ? `<i class="fas fa-heart"></i> Added To Wishlist`
+        : `<i class="far fa-heart"></i> Wishlist`;
+}
+
+wishlistBtn.addEventListener("click", () => {
+    let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+    const exists = wishlist.find(item => item.id === currentProduct.id);
+
+    if(!exists){
+        wishlist.push({
+            id: currentProduct.id,
+            name: currentProduct.name,
+            brand: currentProduct.brand,
+            category: currentProduct.category,
+            price: currentProduct.price,
+            image: currentProduct.image
+        });
+        localStorage.setItem("wishlist", JSON.stringify(wishlist));
+        alert("Added to wishlist!");
+    } else {
+        wishlist = wishlist.filter(item => item.id !== currentProduct.id);
+        localStorage.setItem("wishlist", JSON.stringify(wishlist));
+        alert("Removed from wishlist!");
+    }
+    updateWishlistButton();
+});
+
+// Initialize wishlist button state
+updateWishlistButton();
+
+// =============================
 // RELATED PRODUCTS
 // =============================
+const relatedContainer = document.getElementById("related-products-container");
+const adminProducts = JSON.parse(localStorage.getItem("adminProducts")) || [];
+const relatedProducts = adminProducts.filter(p => p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 4);
+if(relatedProducts.length === 0){
 
-const relatedContainer =
-    document.getElementById(
-        "related-products-container"
-    );
-
-const adminProducts =
-    JSON.parse(
-        localStorage.getItem(
-            "adminProducts"
-        )
-    ) || [];
-
-adminProducts
-.slice(0, 3)
-.forEach((product) => {
-
-    const card =
-        document.createElement("div");
-
-    card.classList.add("pro");
-
-    card.innerHTML = `
-        <img
-            src="${product.image}"
-            alt="${product.name}"
-        >
-
-        <div class="des">
-
-            <span>
-                ${product.brand || "Brand"}
-            </span>
-
-            <h5>
-                ${product.name}
-            </h5>
-
-            <h4>
-                ₹${product.price}
-            </h4>
-
-        </div>
+    relatedContainer.innerHTML = `
+        <p class="no-products">
+            No related products available right now.
+        </p>
     `;
 
-    card.addEventListener(
-        "click",
-        () => {
-
-            localStorage.setItem(
-                "selectedProduct",
-                JSON.stringify(product)
-            );
-
-            window.location.reload();
-
-        }
-    );
-
-    relatedContainer.appendChild(
-        card
-    );
-
+}
+relatedProducts.forEach(product => {
+    const card = document.createElement("div");
+    card.classList.add("pro");
+    card.innerHTML = `
+        <img src="${product.image}" alt="${product.name}">
+        <div class="des">
+            <span>${product.brand || "Brand"}</span>
+            <h5>${product.name}</h5>
+            <div class="star">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+            </div>
+            <h4>₹${product.price}</h4>
+        </div>
+    `;
+    card.addEventListener("click", () => {
+        localStorage.setItem("selectedProduct", JSON.stringify(product));
+        window.location.href = "product.html";
+    });
+    relatedContainer.appendChild(card);
 });
 
 // =============================
@@ -776,88 +866,118 @@ function renderReviews(){
 // =============================
 // SUBMIT REVIEW
 // =============================
+if(reviewForm){
 
-reviewForm.addEventListener(
-    "submit",
-    (e) => {
+    reviewForm.addEventListener(
+        "submit",
+        (e) => {
 
-        e.preventDefault();
+            e.preventDefault();
 
-        const name =
-            document.getElementById(
-                "review-name"
-            ).value;
-
-        const rating =
-            parseInt(
+            const name =
                 document.getElementById(
-                    "review-rating"
-                ).value
+                    "review-name"
+                ).value;
+
+            const rating =
+                parseInt(
+                    document.getElementById(
+                        "review-rating"
+                    ).value
+                );
+
+            const comment =
+                document.getElementById(
+                    "review-comment"
+                ).value;
+
+            const review = {
+
+                name,
+                rating,
+                comment,
+
+                date:
+                    new Date()
+                    .toLocaleDateString()
+
+            };
+
+            reviews.unshift(review);
+
+            localStorage.setItem(
+                reviewKey,
+                JSON.stringify(reviews)
             );
 
-        const comment =
-            document.getElementById(
-                "review-comment"
-            ).value;
+            renderReviews();
 
-        const review = {
+            reviewForm.reset();
 
-            name,
+            const total =
+                reviews.reduce(
+                    (sum, item) =>
+                        sum + item.rating,
+                    0
+                );
 
-            rating,
+            const average =
+                (
+                    total /
+                    reviews.length
+                ).toFixed(1);
 
-            comment,
+            const updatedRatingContainer =
+                document.querySelector(
+                    ".product-rating"
+                );
 
-            date:
-                new Date()
-                .toLocaleDateString()
+            let updatedStars = "";
 
-        };
+            for(
+                let i = 0;
+                i < 5;
+                i++
+            ){
 
-        reviews.unshift(review);
+                if(
+                    i < Math.round(average)
+                ){
 
-        localStorage.setItem(
-            reviewKey,
-            JSON.stringify(reviews)
-        );
+                    updatedStars += `
+                        <i class="fas fa-star"></i>
+                    `;
 
-        renderReviews();
+                }else{
 
-        reviewForm.reset();
+                    updatedStars += `
+                        <i class="far fa-star"></i>
+                    `;
 
-        // =============================
-        // UPDATE PRODUCT RATING
-        // =============================
+                }
 
-        const total =
-            reviews.reduce(
-                (sum, item) =>
-                    sum + item.rating,
-                0
+            }
+
+            updatedRatingContainer.innerHTML = `
+                ${updatedStars}
+
+                <span id="product-rating-text">
+                    (${average} Ratings)
+                </span>
+            `;
+
+            alert(
+                "Review submitted!"
             );
 
-        const average =
-            (
-                total /
-                reviews.length
-            ).toFixed(1);
+        }
+    );
 
-        document.getElementById(
-            "product-rating-text"
-        ).innerText =
-            `(${average} Ratings)`;
-
-        alert(
-            "Review submitted!"
-        );
-
-    }
-);
+}
 
 // =============================
 // INITIALIZE REVIEWS
 // =============================
-
 renderReviews();
 
 // =============================
@@ -876,6 +996,23 @@ const wishlist =
         )
     ) || [];
 
+const wishlistExists =
+    wishlist.find(
+        (item) =>
+            item.id ===
+            currentProduct.id
+    );
+
+if(wishlistExists){
+    document.getElementById(
+        "wishlist-btn"
+    ).innerHTML = `
+        <i class="fas fa-heart"></i>
+
+        Added To Wishlist
+    `;
+}
+
 const recentlyViewed =
     JSON.parse(
         localStorage.getItem(
@@ -887,29 +1024,22 @@ let recommendedProducts =
     adminProducts.filter((item) => {
 
         // Exclude current product
-
         if(
             item.id ===
             currentProduct.id
         ){
-
             return false;
-
         }
 
         // Match category
-
         if(
             item.category ===
             currentProduct.category
         ){
-
             return true;
-
         }
 
         // Match wishlist category
-
         const wishlistMatch =
             wishlist.find(
                 (wish) =>
@@ -918,85 +1048,94 @@ let recommendedProducts =
             );
 
         if(wishlistMatch){
-
             return true;
-
         }
 
         // Match recently viewed category
-
         const viewedMatch =
             recentlyViewed.find(
                 (viewed) =>
                     viewed.category ===
                     item.category
             );
-
         if(viewedMatch){
-
             return true;
-
         }
-
         return false;
-
     });
 
 // Limit recommendations
-
 recommendedProducts =
     recommendedProducts.slice(0, 4);
+
+if(recommendedProducts.length === 0){
+
+    recommendedProducts =
+        adminProducts
+        .filter(
+            (item) =>
+                item.id !==
+                currentProduct.id
+        )
+        .slice(0, 4);
+
+}
 
 // =============================
 // RENDER RECOMMENDATIONS
 // =============================
+if(recommendedProducts.length === 0){
+
+    recommendedContainer.innerHTML = `
+        <p class="no-products">
+            No recommendations available right now.
+        </p>
+    `;
+
+}
 
 recommendedProducts.forEach((product) => {
-
     const card =
         document.createElement("div");
-
     card.classList.add("pro");
-
     card.innerHTML = `
         <img
             src="${product.image}"
             alt="${product.name}"
         >
-
         <div class="des">
-
             <span>
                 ${product.brand || "Brand"}
             </span>
-
             <h5>
                 ${product.name}
             </h5>
-
+            <div class="star">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+            </div>
             <h4>
                 ₹${product.price}
             </h4>
-
         </div>
     `;
 
     card.addEventListener(
         "click",
         () => {
-
             localStorage.setItem(
                 "selectedProduct",
                 JSON.stringify(product)
             );
-
-            window.location.reload();
-
+            window.location.href =
+                "product.html";
         }
     );
 
     recommendedContainer.appendChild(
         card
     );
-
 });

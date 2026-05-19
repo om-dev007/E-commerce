@@ -247,26 +247,6 @@ setTimeout(() => ripple.remove(), 600);
 });
 
 // =============================
-// DARK MODE
-// =============================
-const darkToggle = document.createElement("button");
-darkToggle.innerText = "🌙";
-darkToggle.style.cssText = `  position:fixed;
-  bottom:20px;
-  left:20px;
-  padding:10px;
-  border-radius:50%;
-  border:none;
-  background:#222;
-  color:white;
-  z-index:9999;`;
-document.body.appendChild(darkToggle);
-
-darkToggle.onclick = () => {
-document.body.classList.toggle("dark");
-};
-
-// =============================
 // RECENTLY VIEWED PRODUCTS
 // =============================
 document.querySelectorAll(".pro").forEach((card) => {
@@ -291,91 +271,6 @@ localStorage.removeItem("cart");
 updateCartCount();
 showToast("Order Placed Successfully 🎉");
 }, 1500);
-};
-
-// ============================================================
-// 🔥 EXTRA ADVANCED FEATURES — ADD BELOW YOUR CURRENT CODE
-// ============================================================
-
-// =============================
-// SCROLL PROGRESS BAR
-// =============================
-const progress = document.createElement("div");
-progress.style.cssText = `position:fixed;
-top:0;
-left:0;
-height:4px;
-width:0%;
-background:#088178;
-z-index:99999;`;
-document.body.appendChild(progress);
-
-window.addEventListener("scroll", () => {
-const totalHeight = document.body.scrollHeight - window.innerHeight;
-const progressHeight = (window.scrollY / totalHeight) * 100;
-progress.style.width = progressHeight + "%";
-});
-
-// =============================
-// LIVE PRODUCT SEARCH
-// =============================
-const searchBox = document.createElement("input");
-searchBox.placeholder = "🔍 Search products...";
-searchBox.style.cssText = `position:fixed;
-top:90px;
-right:20px;
-padding:10px 15px;
-border-radius:25px;
-border:1px solid #ccc;
-z-index:9999;`;
-document.body.appendChild(searchBox);
-
-searchBox.addEventListener("keyup", () => {
-const val = searchBox.value.toLowerCase();
-document.querySelectorAll(".pro").forEach((product) => {
-const name = product.innerText.toLowerCase();
-product.style.display = name.includes(val) ? "block" : "none";
-});
-});
-
-// =============================
-// SORT PRODUCTS BY PRICE
-// =============================
-const sortBtn = document.createElement("button");
-sortBtn.innerText = "Sort ₹";
-sortBtn.style.cssText = `position:fixed;
-top:140px;
-right:20px;
-padding:10px 15px;
-background:#088178;
-color:white;
-border:none;
-border-radius:20px;
-z-index:9999;`;
-document.body.appendChild(sortBtn);
-
-let asc = true;
-sortBtn.onclick = () => {
-const container =
-    document.querySelector(
-        ".pro-container"
-    );
-
-if(!container) return;
-
-const items =
-    Array.from(
-        container.children
-    );
-
-items.sort((a, b) => {
-const priceA = parseInt(a.querySelector("h4").innerText.replace(/\D/g,""));
-const priceB = parseInt(b.querySelector("h4").innerText.replace(/\D/g,""));
-return asc ? priceA - priceB : priceB - priceA;
-});
-
-asc = !asc;
-items.forEach(el => container.appendChild(el));
 };
 
 // =============================
@@ -416,30 +311,6 @@ localStorage.setItem("wishlist", JSON.stringify(wishlist));
 });
 
 // =============================
-// COUPON SYSTEM
-// =============================
-const couponBtn = document.createElement("button");
-couponBtn.innerText = "Apply Coupon";
-couponBtn.style.cssText = `position:fixed;
-bottom:80px;
-right:20px;
-padding:10px 15px;
-background:black;
-color:white;
-border:none;
-border-radius:20px;
-z-index:9999;`;
-document.body.appendChild(couponBtn);
-
-couponBtn.onclick = () => {
-const code = prompt("Enter Coupon Code");
-
-if (code === "MOHIT50") showToast("50% Discount Applied 🎉");
-else if (code === "WELCOME10") showToast("10% Discount Applied 🎉");
-else showToast("Invalid Coupon ❌");
-};
-
-// =============================
 // ESTIMATED DELIVERY DATE
 // =============================
 function deliveryDate() {
@@ -476,15 +347,6 @@ i = (i + 1) % heroTexts.length;
 }, 2500);
 
 // =============================
-// KEYBOARD SHORTCUTS (PRO LEVEL)
-// =============================
-document.addEventListener("keydown", (e) => {
-if (e.key === "/") searchBox.focus();
-if (e.key === "c") showToast("Cart Shortcut Pressed 🛒");
-if (e.key === "d") document.body.classList.toggle("dark");
-});
-
-// =============================
 // HIGHLIGHT NEW PRODUCTS
 // =============================
 document.querySelectorAll(".pro").forEach((card, index) => {
@@ -505,44 +367,6 @@ card.appendChild(tag);
 });
 
 console.log("🚀 Extra features loaded successfully!");
-
-// =======================================================
-// 🧠 ADVANCED ECOMMERCE LOGIC (ADD BELOW EVERYTHING)
-// =======================================================
-
-// =============================
-// BACK TO TOP BUTTON
-// =============================
-const topBtn = document.createElement("button");
-topBtn.innerText = "↑";
-topBtn.style.cssText = `position:fixed;
-bottom:20px;
-right:20px;
-padding:12px 15px;
-border:none;
-border-radius:50%;
-background:#088178;
-color:white;
-font-size:18px;
-display:none;
-z-index:9999;`;
-document.body.appendChild(topBtn);
-
-window.addEventListener("scroll",()=>{
-topBtn.style.display = window.scrollY > 400 ? "block" : "none";
-});
-topBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
-
-// =============================
-// SAVE SCROLL POSITION
-// =============================
-window.addEventListener("beforeunload",()=>{
-localStorage.setItem("scrollPos",window.scrollY);
-});
-window.addEventListener("load",()=>{
-const pos = localStorage.getItem("scrollPos");
-if(pos) window.scrollTo(0,pos);
-});
 
 // =============================
 // IMAGE HOVER ZOOM
@@ -572,9 +396,19 @@ minus.innerText="-";
 plus.innerText="+";
 count.innerText="1";
 
-[minus,plus].forEach(b=>{
-b.style.margin="5px";
-b.style.padding="3px 8px";
+[minus,plus].forEach((b)=>{
+
+    b.style.cssText = `
+        width:36px;
+        height:36px;
+        border:none;
+        border-radius:8px;
+        background:#f3f3f3;
+        font-size:18px;
+        cursor:pointer;
+        transition:0.3s ease;
+    `;
+
 });
 
 minus.onclick=()=>{ if(count.innerText>1) count.innerText--; };
@@ -591,7 +425,10 @@ let compare=[];
 
 document.querySelectorAll(".pro").forEach(card=>{
 const btn=document.createElement("button");
-btn.innerText="Compare";
+btn.innerHTML = `
+    <i class="fas fa-balance-scale"></i>
+    Compare
+`;
 btn.style.marginTop="6px";
 card.appendChild(btn);
 
@@ -739,9 +576,68 @@ function renderCartDrawer() {
     <p>Subtotal: ₹${subtotal}</p>
     <p>Tax (18%): ₹${tax.toFixed(2)}</p>
     <h3>Total: ₹${total.toFixed(2)}</h3>
-    <button onclick="placeOrder()">Checkout</button>
-    <button onclick="clearCart()">Clear Cart</button>
+
+    <input
+      type="text"
+      id="coupon-code"
+      placeholder="Enter Coupon Code"
+      style="
+        width:100%;
+        padding:10px;
+        margin:10px 0;
+        border:1px solid #ccc;
+        border-radius:6px;
+      "
+    >
+
+    <button onclick="applyCoupon()">
+      Apply Coupon
+    </button>
+
+    <button onclick="placeOrder()">
+      Checkout
+    </button>
+
+    <button onclick="clearCart()">
+      Clear Cart
+    </button>
   `;
+}
+
+function applyCoupon(){
+
+    const input =
+        document.getElementById(
+            "coupon-code"
+        );
+
+    if(!input) return;
+
+    const code =
+        input.value.trim();
+
+    if(code === "MOHIT50"){
+
+        showToast(
+            "50% Discount Applied 🎉"
+        );
+
+    }else if(
+        code === "WELCOME10"
+    ){
+
+        showToast(
+            "10% Discount Applied 🎉"
+        );
+
+    }else{
+
+        showToast(
+            "Invalid Coupon ❌"
+        );
+
+    }
+
 }
 
 function openCart(){
@@ -832,7 +728,10 @@ document.querySelectorAll(".star").forEach(starContainer=>{
 // =============================
 document.querySelectorAll(".pro").forEach(card=>{
   const reviewBtn=document.createElement("button");
-  reviewBtn.innerText="Add Review";
+  reviewBtn.innerHTML = `
+      <i class="fas fa-star"></i>
+      Add Review
+  `;
   card.appendChild(reviewBtn);
 
   reviewBtn.onclick=(e)=>{
@@ -909,19 +808,6 @@ document.addEventListener("click",(e)=>{
   console.log("User Clicked:",e.target.tagName);
 });
 
-
-// =============================
-// THEME MEMORY
-// =============================
-if(localStorage.getItem("darkMode")==="true"){
-  document.body.classList.add("dark");
-}
-document.body.addEventListener("click",()=>{
-  localStorage.setItem("darkMode",
-    document.body.classList.contains("dark"));
-});
-
-
 // =============================
 // SESSION TIMER
 // =============================
@@ -936,26 +822,6 @@ let visits=parseInt(localStorage.getItem("visits")||0);
 visits++;
 localStorage.setItem("visits",visits);
 console.log("Total Visits:",visits);
-
-
-// =============================
-// MOUSE TRAIL EFFECT
-// =============================
-document.addEventListener("mousemove",(e)=>{
-  const dot=document.createElement("div");
-  dot.style.cssText=`
-  position:fixed;
-  width:6px;height:6px;
-  background:#088178;
-  border-radius:50%;
-  top:${e.clientY}px;
-  left:${e.clientX}px;
-  pointer-events:none;
-  `;
-  document.body.appendChild(dot);
-  setTimeout(()=>dot.remove(),300);
-});
-
 
 // =============================
 // FPS PERFORMANCE TRACKER
@@ -1132,5 +998,93 @@ if(featuredContainer){
         });
 
     }
+
+}
+
+// =============================
+// SEARCH PRODUCTS
+// =============================
+
+const productSearch =
+    document.getElementById(
+        "product-search"
+    );
+
+if(productSearch){
+
+    productSearch.addEventListener(
+        "keyup",
+        () => {
+
+            const value =
+                productSearch.value
+                .toLowerCase();
+
+            const filtered =
+                allProducts.filter(
+                    (product) => {
+
+                        return (
+                            product.name
+                            .toLowerCase()
+                            .includes(value)
+                        );
+
+                    }
+                );
+
+            renderProducts(filtered);
+
+        }
+    );
+
+}
+
+// =============================
+// SORT PRODUCTS
+// =============================
+
+const productSort =
+    document.getElementById(
+        "product-sort"
+    );
+
+if(productSort){
+
+    productSort.addEventListener(
+        "change",
+        () => {
+
+            let sorted =
+                [...allProducts];
+
+            if(
+                productSort.value
+                === "low-high"
+            ){
+
+                sorted.sort(
+                    (a, b) =>
+                        a.price - b.price
+                );
+
+            }
+
+            if(
+                productSort.value
+                === "high-low"
+            ){
+
+                sorted.sort(
+                    (a, b) =>
+                        b.price - a.price
+                );
+
+            }
+
+            renderProducts(sorted);
+
+        }
+    );
 
 }

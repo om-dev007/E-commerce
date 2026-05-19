@@ -1,86 +1,19 @@
-console.log("Shop page loaded successfully!");
+console.log(
+    "Shop page loaded successfully!"
+);
 
 // =============================
-// DEFAULT PRODUCTS
+// API URL
 // =============================
 
-const defaultProducts = [
-
-    {
-        id: 1,
-        brand: "Adidas",
-        name: "Cartoon Astronaut T-Shirts",
-        category: "tshirt",
-        price: 999,
-        image: "../assets/images/f1.jpg"
-    },
-
-    {
-        id: 2,
-        brand: "Nike",
-        name: "Premium Fashion Shirt",
-        category: "shirt",
-        price: 1299,
-        image: "../assets/images/f2.jpg"
-    },
-
-    {
-        id: 3,
-        brand: "Puma",
-        name: "Modern Casual Hoodie",
-        category: "hoodie",
-        price: 1499,
-        image: "../assets/images/f3.jpg"
-    },
-
-    {
-        id: 4,
-        brand: "Levis",
-        name: "Stylish Denim Jacket",
-        category: "jacket",
-        price: 1799,
-        image: "../assets/images/f4.jpg"
-    },
-
-    {
-        id: 5,
-        brand: "Zara",
-        name: "Casual Summer T-Shirt",
-        category: "tshirt",
-        price: 1199,
-        image: "../assets/images/f5.jpg"
-    },
-
-    {
-        id: 6,
-        brand: "H&M",
-        name: "Designer Hoodie",
-        category: "hoodie",
-        price: 1999,
-        image: "../assets/images/f6.jpg"
-    }
-
-];
+const API_URL =
+    "http://localhost:5000/api/products";
 
 // =============================
-// ADMIN PRODUCTS
+// PRODUCTS ARRAY
 // =============================
 
-const adminProducts =
-    JSON.parse(
-        localStorage.getItem(
-            "adminProducts"
-        )
-    ) || [];
-
-// =============================
-// COMBINED PRODUCTS
-// =============================
-
-let allProducts = [
-    ...defaultProducts,
-    ...adminProducts
-];
+let allProducts = [];
 
 // =============================
 // ELEMENTS
@@ -107,6 +40,45 @@ const productContainer =
     );
 
 // =============================
+// FETCH PRODUCTS
+// =============================
+
+async function fetchProducts(){
+
+    try{
+
+        const response =
+            await fetch(API_URL);
+
+        const data =
+            await response.json();
+
+        if(data.success){
+
+            allProducts =
+                data.products;
+
+            renderProducts(
+                allProducts
+            );
+
+        }
+
+    }catch(error){
+
+        console.log(error);
+
+        productContainer.innerHTML = `
+            <h3>
+                Failed to load products.
+            </h3>
+        `;
+
+    }
+
+}
+
+// =============================
 // RENDER PRODUCTS
 // =============================
 
@@ -117,7 +89,9 @@ function renderProducts(products){
     if(products.length === 0){
 
         productContainer.innerHTML = `
-            <h3>No products found.</h3>
+            <h3>
+                No products found.
+            </h3>
         `;
 
         return;
@@ -140,50 +114,39 @@ function renderProducts(products){
             product.price;
 
         productCard.innerHTML = `
-            <a href="product.html">
 
-                <img
-                    src="${product.image}"
-                    alt="${product.name}"
-                >
-
-            </a>
+            <img
+                src="${
+                    product.image ||
+                    "../assets/images/f1.jpg"
+                }"
+                alt="${product.name}"
+            >
 
             <div class="des">
-
                 <span>
-                    ${product.brand || "Brand"}
+                    ${product.category || "Brand"}
                 </span>
-
                 <h5>
                     ${product.name}
                 </h5>
-
                 <div class="star">
-
                     <i class="fas fa-star"></i>
                     <i class="fas fa-star"></i>
                     <i class="fas fa-star"></i>
                     <i class="fas fa-star"></i>
                     <i class="fas fa-star"></i>
-
                 </div>
-
                 <h4>
                     ₹${product.price}
                 </h4>
-
                 <p class="stock-info">
                     ${
-                        product.stock > 0 ||
-                        product.stock === undefined
-                            ? `Stock: ${
-                                product.stock || 20
-                              }`
-                            : "Out Of Stock"
+                        product.stock > 0
+                        ? `Stock: ${product.stock}`
+                        : "Out Of Stock"
                     }
                 </p>
-
             </div>
 
             ${
@@ -201,8 +164,9 @@ function renderProducts(products){
             }
         `;
 
-        // Product Redirect
-
+        // =============================
+        // PRODUCT REDIRECT
+        // =============================
         productCard.addEventListener(
             "click",
             () => {
@@ -218,67 +182,78 @@ function renderProducts(products){
             }
         );
 
-        // Add To Cart
-
+        // =============================
+        // ADD TO CART
+        // =============================
         const cartBtn =
             productCard.querySelector(
                 ".cart"
             );
 
-        cartBtn.addEventListener(
-            "click",
-            (e) => {
+        if(cartBtn){
 
-                e.preventDefault();
+            cartBtn.addEventListener(
+                "click",
+                (e) => {
 
-                e.stopPropagation();
+                    e.preventDefault();
 
-                let cart =
-                    JSON.parse(
-                        localStorage.getItem(
-                            "cart"
-                        )
-                    ) || [];
+                    e.stopPropagation();
 
-                const item = {
+                    let cart =
+                        JSON.parse(
+                            localStorage.getItem(
+                                "cart"
+                            )
+                        ) || [];
 
-                    name: product.name,
+                    const item = {
 
-                    price: `₹${product.price}`,
+                        id:
+                            product.id,
 
-                    img: product.image,
+                        name:
+                            product.name,
 
-                    qty: 1
+                        price:
+                            `₹${product.price}`,
 
-                };
+                        img:
+                            product.image,
 
-                const existing =
-                    cart.find(
-                        (p) =>
-                            p.name === item.name
+                        qty: 1
+
+                    };
+
+                    const existing =
+                        cart.find(
+                            (p) =>
+                                p.id === item.id
+                        );
+
+                    if(existing){
+
+                        existing.qty++;
+
+                    }else{
+
+                        cart.push(item);
+
+                    }
+
+                    localStorage.setItem(
+                        "cart",
+                        JSON.stringify(cart)
                     );
 
-                if(existing){
-
-                    existing.qty++;
-
-                }else{
-
-                    cart.push(item);
+                    alert(
+                        "Added to cart!"
+                    );
 
                 }
+            );
 
-                localStorage.setItem(
-                    "cart",
-                    JSON.stringify(cart)
-                );
-
-                alert(
-                    "Added to cart!"
-                );
-
-            }
-        );
+        }
 
         productContainer.appendChild(
             productCard
@@ -289,10 +264,10 @@ function renderProducts(products){
 }
 
 // =============================
-// INITIAL RENDER
+// INITIAL FETCH
 // =============================
 
-renderProducts(allProducts);
+fetchProducts();
 
 // =============================
 // SEARCH FILTER
@@ -365,6 +340,7 @@ filterButtons.forEach((button) => {
 
                         return (
                             product.category
+                            .toLowerCase()
                             === category
                         );
 

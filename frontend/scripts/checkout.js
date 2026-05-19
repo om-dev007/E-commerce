@@ -9,6 +9,17 @@ const cart =
         localStorage.getItem("cart")
     ) || [];
 
+if(cart.length === 0){
+
+    alert(
+        "Your cart is empty!"
+    );
+
+    window.location.href =
+        "cart.html";
+
+}
+
 const checkoutItems =
     document.getElementById(
         "checkout-items"
@@ -158,6 +169,7 @@ checkoutForm.addEventListener(
             ) || [];
 
         const order = {
+
             id:
                 "ORD-" +
                 Date.now(),
@@ -169,7 +181,60 @@ checkoutForm.addEventListener(
             status:
                 "Pending",
 
-            items: cart        
+            customer: {
+            
+                name:
+                    document.getElementById(
+                        "full-name"
+                    ).value,
+                
+                email:
+                    document.getElementById(
+                        "email"
+                    ).value,
+                
+                phone:
+                    document.getElementById(
+                        "phone"
+                    ).value
+                
+            },
+        
+            address: {
+            
+                city:
+                    document.getElementById(
+                        "city"
+                    ).value,
+                
+                state:
+                    document.getElementById(
+                        "state"
+                    ).value,
+                
+                zip:
+                    document.getElementById(
+                        "zip"
+                    ).value,
+                
+                fullAddress:
+                    document.getElementById(
+                        "address"
+                    ).value
+                
+            },
+        
+            paymentMethod:
+                document.querySelector(
+                    'input[name="payment"]:checked'
+                ).value,
+            
+            items:
+                cart,
+                        
+            total:
+                total.toFixed(2)
+            
         };
 
         orders.push(order);

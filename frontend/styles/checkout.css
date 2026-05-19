@@ -62,6 +62,14 @@
     border-radius: 6px;
     outline: none;
     font-size: 15px;
+    transition: 0.3s ease;
+    background: #fff;
+}
+
+#checkout-form input:focus,
+#checkout-form textarea:focus{
+    border-color: #088178;
+    box-shadow: 0 0 0 4px rgba(8,129,120,0.1);
 }
 
 #checkout-form textarea{
@@ -75,9 +83,21 @@
 }
 
 .payment-options label{
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 14px;
     font-weight: 600;
+    padding: 14px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.payment-options label:hover{
+    border-color: #088178;
+    background: #f8fffe;
 }
 
 #card-details{
@@ -93,6 +113,12 @@
     border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
+    transition: 0.3s ease;
+}
+
+#checkout-form button:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
 }
 
 .checkout-item{
@@ -129,4 +155,36 @@
         flex-direction: column;
     }
 
+}
+
+.payment-options input[type="radio"]:checked + span {
+    font-weight: 700;
+    color: #088178;
+}
+
+.payment-options label {
+    position: relative;
+}
+
+.payment-options label input[type="radio"] {
+    display: none;
+}
+
+.payment-options label::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    transition: 0.3s ease;
+}
+
+.payment-options input[type="radio"]:checked + span::before {
+    background: #088178;
+    border-color: #088178;
 }

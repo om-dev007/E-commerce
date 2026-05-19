@@ -58,8 +58,50 @@
 
 <!-- Featured Products Section -->
 <section id="product1" class="section-p1">
-    <h2>Feature Products</h2>
-    <p>Summer Collection New Modern Design</p>
+    <h2>Featured Products</h2>
+
+    <p>
+        Summer Collection New Modern Design
+    </p>
+
+    <!-- Product Controls -->
+
+    <div class="product-controls">
+    
+        <div class="search-box">
+        
+            <input
+                type="text"
+                id="product-search"
+                placeholder="Search products..."
+            >
+        
+            <i class="fas fa-search"></i>
+        
+        </div>
+      
+        <div class="sort-box">
+        
+            <select id="product-sort">
+            
+                <option value="default">
+                    Sort Products
+                </option>
+              
+                <option value="low-high">
+                    Price Low → High
+                </option>
+              
+                <option value="high-low">
+                    Price High → Low
+                </option>
+              
+            </select>
+          
+        </div>
+      
+    </div>
+
     <div class="pro-container">
 
         <div class="pro">
@@ -440,12 +482,14 @@
 
 </section>
 
-<!-- Footer Section -->
-<div id="footer"></div>
-<script src="scripts/components.js"></script>
-<script src="scripts/script.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="scripts/auth.js"></script>
+    <!-- Footer Section -->
+    <div id="footer"></div>
+    
+    <script src="scripts/components.js"></script>
+    <script src="scripts/script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="scripts/auth.js"></script>
+  
   </body>
 </html>

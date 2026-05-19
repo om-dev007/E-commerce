@@ -33,11 +33,22 @@ function renderCart(){
         cartContainer.innerHTML = `
             <div class="empty-cart">
 
-                <h2>Your cart is empty</h2>
+                <h2>
+                    Your cart is empty
+                </h2>
 
                 <p>
                     Add products to continue shopping.
                 </p>
+
+                <a
+                    href="shop.html"
+                    class="continue-shopping-btn"
+                >
+
+                    Continue Shopping
+
+                </a>
 
             </div>
         `;
@@ -57,7 +68,7 @@ function renderCart(){
     cart.forEach((item, index) => {
 
         const price = parseInt(
-            item.price.replace(/\\D/g, "")
+            item.price.replace(/\D/g, "")
         );
 
         subtotal += price * item.qty;
@@ -79,7 +90,25 @@ function renderCart(){
 
                 <p>Price: ₹${price}</p>
 
-                <p>Quantity: ${item.qty}</p>
+                <div class="cart-qty-controls">
+
+                    <button
+                        onclick="decreaseQty(${index})"
+                    >
+                        -
+                    </button>
+
+                    <span>
+                        ${item.qty}
+                    </span>
+
+                    <button
+                        onclick="increaseQty(${index})"
+                    >
+                        +
+                    </button>
+
+                </div>
 
             </div>
 
@@ -99,14 +128,23 @@ function renderCart(){
 
     const tax = subtotal * 0.18;
 
-    const total = subtotal + tax;
+    const shippingCost =
+    parseInt(
+        localStorage.getItem("shippingCost") || 0
+    );
 
+    const total =
+        subtotal + tax + shippingCost;
+    
     subtotalElement.innerText =
         `₹${subtotal}`;
-
+    
     taxElement.innerText =
         `₹${tax.toFixed(2)}`;
-
+    
+    document.getElementById("checkout-shipping").innerText =
+        shippingCost === 0 ? "Free" : `₹${shippingCost}`;
+    
     totalElement.innerText =
         `₹${total.toFixed(2)}`;
 
@@ -115,24 +153,43 @@ function renderCart(){
 // =============================
 // REMOVE ITEM
 // =============================
-
 function removeItem(index){
-
     cart.splice(index, 1);
-
     localStorage.setItem(
         "cart",
         JSON.stringify(cart)
     );
-
     renderCart();
+}
 
+// =============================
+// QUANTITY CONTROLS
+// =============================
+function increaseQty(index){
+    cart[index].qty++;
+    localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+    );
+    renderCart();
+}
+
+function decreaseQty(index){
+    if(cart[index].qty > 1){
+        cart[index].qty--;
+    }else{
+        cart.splice(index, 1);
+    }
+    localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+    );
+    renderCart();
 }
 
 // =============================
 // CHECKOUT
 // =============================
-
 const checkoutBtn =
     document.getElementById(
         "checkout-btn"
@@ -150,15 +207,13 @@ checkoutBtn.addEventListener(
 
         }
 
-        alert(
-            "Checkout functionality coming soon!"
-        );
+        // Optional: Store shipping if needed
+        localStorage.setItem("shippingCost", 0);
+
+        window.location.href =
+            "checkout.html";
 
     }
 );
-
-// =============================
-// INITIAL RENDER
-// =============================
 
 renderCart();
