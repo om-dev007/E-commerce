@@ -444,3 +444,42 @@ MOBILE OPTIMIZATIONS
         animation-duration: 0.4s;
     }
 }
+
+/* =============================
+ACCESSIBILITY: Focus visibility
+============================= */
+
+/* Provide clear focus indication for keyboard users */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.pro:focus-within {
+    outline: 3px solid rgba(8,129,120,0.16);
+    outline-offset: 3px;
+    box-shadow: 0 6px 18px rgba(8,129,120,0.12);
+}
+
+/* Ensure interactive elements remain readable during animations */
+a,
+button {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Reduce motion for users who prefer less animation */
+@media (prefers-reduced-motion: reduce) {
+    .animate-on-scroll,
+    .pro,
+    #feature .fe-box,
+    #hero h1,
+    #hero h2,
+    #hero p,
+    #hero button {
+        transition: none !important;
+        animation-duration: 1ms !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+}
