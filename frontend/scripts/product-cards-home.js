@@ -142,6 +142,17 @@ function createProductCard(
                     >
                         Add Cart
                     </button>
+
+                    <button
+    type="button"
+    class="compare-btn"
+    data-id="${
+        product.id
+    }"
+>
+    Compare
+</button>
+
                     
                     <button
                         type="button"
@@ -151,6 +162,7 @@ function createProductCard(
                     >
                         <i class="${ AppUtils.getWishlist().some(item => String(item.id) === String(product.id)) ? 'fas' : 'far' } fa-heart"></i>
                     </button>
+
                 </div>
             </div>
         </div>
