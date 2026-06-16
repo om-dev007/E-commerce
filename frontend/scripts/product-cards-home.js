@@ -142,6 +142,17 @@ function createProductCard(
                     >
                         Add Cart
                     </button>
+
+                    <button
+    type="button"
+    class="compare-btn"
+    data-id="${
+        product.id
+    }"
+>
+    Compare
+</button>
+
                     
                     <button
                         type="button"
@@ -151,6 +162,7 @@ function createProductCard(
                     >
                         <i class="${ AppUtils.getWishlist().some(item => String(item.id) === String(product.id)) ? 'fas' : 'far' } fa-heart"></i>
                     </button>
+
                 </div>
             </div>
         </div>
@@ -187,10 +199,38 @@ function renderFeaturedProducts(
                 </p>
             `;
 
-    if (typeof initializeProductCardFeatures === "function") {
-        initializeProductCardFeatures();
-    }
+    // Add stagger indices for scroll animation
+    requestAnimationFrame(() => {
+        const cards = homeFeaturedContainer.querySelectorAll('.pro');
+        cards.forEach((card, i) => {
+            card.setAttribute('data-anim-index', String(i));
+        });
+
+        if (typeof initializeScrollAnimations === "function") {
+            initializeScrollAnimations();
+        }
+
+        // Ensure product cards are animated only once per element
+        if (typeof addProductCardAnimations === "function") {
+            addProductCardAnimations('#featured-products');
+        }
+
+        // Ensure above-the-fold cards animate
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduce) {
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const inView = rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+                if (inView) {
+                    card.classList.add('in-view');
+                }
+            });
+        }
+    });
 }
+
+
+
 
 // render new arrivals
 function renderNewArrivals(
@@ -222,17 +262,61 @@ function renderNewArrivals(
                 </p>
             `;
 
-    if (typeof initializeProductCardFeatures === "function") {
-        initializeProductCardFeatures();
+    // Force animations for already-visible cards (above-the-fold)
+    requestAnimationFrame(() => {
+        if (typeof initializeScrollAnimations === "function") {
+            initializeScrollAnimations();
+        }
+        const cards = homeArrivalsContainer.querySelectorAll('.pro');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const inView = rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+            if (inView) {
+                card.classList.add('in-view');
+            }
+        });
+    });
+}
+
+
+// after rendering new cards, re-apply scroll animations if available
+function refreshHomeCardAnimations() {
+    // Prefer the dedicated helper (animations.js)
+    if (typeof addProductCardAnimations === "function") {
+        if (homeFeaturedContainer) {
+            addProductCardAnimations("#featured-products");
+        }
+        if (homeArrivalsContainer) {
+            addProductCardAnimations("#new-arrivals-container");
+        }
+        return;
     }
+
+    // Fallback: re-run observer setup
+    if (typeof initializeScrollAnimations === "function") {
+        initializeScrollAnimations();
+    }
+}
+
+// wrap render functions to trigger animations after DOM updates
+function renderFeaturedProductsWithAnim(products = []) {
+    renderFeaturedProducts(products);
+    refreshHomeCardAnimations();
+}
+
+function renderNewArrivalsWithAnim(products = []) {
+    renderNewArrivals(products);
+    refreshHomeCardAnimations();
 }
 
 // expose globally
 window.renderFeaturedProducts =
-    renderFeaturedProducts;
+    renderFeaturedProductsWithAnim;
 
 window.renderNewArrivals =
-    renderNewArrivals;
+    renderNewArrivalsWithAnim;
 
 window.createProductCard =
     createProductCard;
+
+

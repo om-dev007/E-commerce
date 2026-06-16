@@ -295,11 +295,9 @@ function renderCart() {
                                 item.img || item.image
                             )
                         )}"
-
                         alt="${escapeHTML(
                             item.name || "Product"
                         )}"
-                        
                         loading="lazy"
                     >
 
