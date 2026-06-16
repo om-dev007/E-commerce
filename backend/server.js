@@ -181,7 +181,10 @@ const allowedOrigins = [
     // vercel deployments
     "https://e-commerce-git-main-bhuvanshs-projects.vercel.app",
 
-    "https://www.bhuvansh.xyz"
+    "https://www.bhuvansh.xyz",
+    
+    // local file execution
+    "null"
 ];
 
 // cors
