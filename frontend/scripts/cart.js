@@ -294,7 +294,7 @@ function renderCart() {
                             AppUtils.defaultImage(
                                 item.img || item.image
                             )
-                        )}
+                        )}"
                         alt="${escapeHTML(
                             item.name || "Product"
                         )}
