@@ -223,7 +223,27 @@ function openArticleModal(id) {
 
     const textDiv = document.createElement("div");
     textDiv.className = "modal-text";
-    textDiv.innerHTML = post.content; // Content contains safe rich HTML markup from the blog posts
+    
+    // Basic sanitization to prevent XSS
+    function sanitizeHTML(html) {
+        const temp = document.createElement("div");
+        temp.innerHTML = html;
+        const scripts = temp.querySelectorAll("script, iframe, object, embed");
+        scripts.forEach(s => s.remove());
+        temp.querySelectorAll("*").forEach(el => {
+            Array.from(el.attributes).forEach(attr => {
+                if (attr.name.toLowerCase().startsWith("on")) {
+                    el.removeAttribute(attr.name);
+                }
+                if (attr.name.toLowerCase() === "href" && attr.value.toLowerCase().startsWith("javascript:")) {
+                    el.removeAttribute(attr.name);
+                }
+            });
+        });
+        return temp.innerHTML;
+    }
+
+    textDiv.innerHTML = sanitizeHTML(post.content);
     blogModalBody.appendChild(textDiv);
 
     const shareDiv = document.createElement("div");
