@@ -583,9 +583,9 @@ function renderProducts() {
 
                         <button
                             type="button"
-                            class="action-btn Deletee-btn"
+                            class="action-btn delete-btn"
                         >
-                            Deletee
+                            Delete
                         </button>
                     </td>
                 `;
@@ -603,12 +603,12 @@ function renderProducts() {
             );
 
             row.querySelector(
-                ".Deletee-btn"
+                ".delete-btn"
             )?.addEventListener(
                 "click",
                 () => {
 
-                    DeleteeProduct(
+                    deleteProduct(
                         product.id
                     );
                 }
@@ -625,14 +625,14 @@ function renderProducts() {
     );
 }
 
-// Deletee product
-async function DeleteeProduct(
+// delete product
+async function deleteProduct(
     id
 ) {
 
     const confirmed =
         confirm(
-            "Deletee this product permanently?"
+            "Delete this product permanently?"
         );
 
     if (
@@ -649,7 +649,7 @@ async function DeleteeProduct(
                 `/products/${id}`,
                 {
                     method:
-                        "DeleteE"
+                        "DELETE"
                 }
             );
 
@@ -674,7 +674,7 @@ async function DeleteeProduct(
             renderStats();
 
             AppUtils.notify(
-                "Product Deleteed successfully!",
+                "Product deleted successfully!",
                 "success"
             );
 
@@ -683,7 +683,7 @@ async function DeleteeProduct(
             AppUtils.notify(
                 response.message
                 ||
-                "Failed to Deletee product.",
+                "Failed to delete product.",
                 "error"
             );
         }
@@ -691,163 +691,46 @@ async function DeleteeProduct(
     } catch (error) {
 
         console.error(
-            "DeleteE PRODUCT ERROR:",
+            "DELETE PRODUCT ERROR:",
             error
         );
 
         AppUtils.notify(
-            "Failed to Deletee product.",
+            "Failed to delete product.",
             "error"
         );
     }
 }
 
 // edit product
-async function editProduct(
-    id
-) {
+function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
 
-    const product =
-        products.find(
-            (
-                p
-            ) => {
-
-                return p.id === id;
+    // Populate modal
+    document.getElementById("edit-product-id").value = product.id;
+    document.getElementById("edit-product-name").value = product.name || "";
+    document.getElementById("edit-product-price").value = product.price || 0;
+    
+    // Set Category
+    const categorySelect = document.getElementById("edit-product-category");
+    if (product.category) {
+        for(let i=0; i<categorySelect.options.length; i++) {
+            if (categorySelect.options[i].value.toLowerCase() === product.category.toLowerCase()) {
+                categorySelect.selectedIndex = i;
+                break;
             }
-        );
-
-    if (
-        !product
-    ) {
-
-        return;
-    }
-
-    const newName =
-        prompt(
-            "Edit Product Name",
-            product.name
-        );
-
-    const newPrice =
-        prompt(
-            "Edit Product Price",
-            product.price
-        );
-
-    const newStock =
-        prompt(
-            "Edit Product Stock",
-            product.stock
-        );
-
-    if (
-        !newName?.trim()
-        ||
-        isNaN(
-            newPrice
-        )
-        ||
-        isNaN(
-            newStock
-        )
-    ) {
-
-        AppUtils.notify(
-            "Invalid product details.",
-            "error"
-        );
-
-        return;
-    }
-
-    const updatedData = {
-
-        name:
-            newName.trim(),
-
-        description:
-            product.description || "",
-
-        price:
-            parseFloat(
-                newPrice
-            ) || 0,
-
-        image:
-            product.image || "",
-
-        category:
-            product.category || "",
-
-        stock:
-            parseInt(
-                newStock,
-                10
-            ) || 0,
-
-        featured:
-            product.featured || false
-    };
-
-    try {
-
-        const response =
-            await AppUtils.apiRequest(
-                `/products/${id}`,
-                {
-
-                    method:
-                        "PUT",
-
-                    body:
-                        JSON.stringify(
-                            updatedData
-                        )
-                }
-            );
-
-        if (
-            response.success
-        ) {
-
-            Object.assign(
-                product,
-                updatedData
-            );
-
-            renderProducts();
-
-            renderStats();
-
-            AppUtils.notify(
-                "Product updated successfully!",
-                "success"
-            );
-
-        } else {
-
-            AppUtils.notify(
-                response.message
-                ||
-                "Failed to update product.",
-                "error"
-            );
         }
-
-    } catch (error) {
-
-        console.error(
-            "EDIT PRODUCT ERROR:",
-            error
-        );
-
-        AppUtils.notify(
-            "Failed to update product.",
-            "error"
-        );
     }
+    
+    document.getElementById("edit-product-stock").value = product.stock || 0;
+    document.getElementById("edit-product-status").value = (product.stock > 0) ? "In Stock" : "Out Of Stock";
+    document.getElementById("edit-product-description").value = product.description || "";
+    document.getElementById("edit-product-image").value = product.image || "";
+    document.getElementById("edit-featured-product").checked = !!product.featured;
+
+    // Show modal
+    document.getElementById("edit-product-modal").style.display = "flex";
 }
 
 // render orders
@@ -966,6 +849,8 @@ document.querySelectorAll('.admin-tab').forEach(tab => {
         } else if (target === 'products') {
             document.getElementById('section-products-form').style.display = 'block';
             document.getElementById('section-products-list').style.display = 'block';
+        } else if (target === 'orders') {
+            document.getElementById('section-orders').style.display = 'block';
         } else if (target === 'support') {
             document.getElementById('section-support').style.display = 'block';
             initAdminChat();
@@ -1287,3 +1172,57 @@ if (selectAllCb) {
 setTimeout(() => {
     loadAdminDashboard();
 }, 500);
+
+
+// Initialize Edit Modal Events
+document.addEventListener("DOMContentLoaded", () => {
+    const editModal = document.getElementById("edit-product-modal");
+    const editForm = document.getElementById("edit-product-form");
+    const cancelBtn = document.getElementById("edit-cancel-btn");
+
+    if (cancelBtn && editModal) {
+        cancelBtn.addEventListener("click", () => {
+            editModal.style.display = "none";
+        });
+    }
+
+    if (editForm) {
+        editForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("edit-product-id").value;
+            const product = products.find(p => String(p.id) === String(id));
+            if (!product) return;
+
+            const updatedData = {
+                name: document.getElementById("edit-product-name").value.trim(),
+                description: document.getElementById("edit-product-description").value.trim(),
+                price: parseFloat(document.getElementById("edit-product-price").value) || 0,
+                image: document.getElementById("edit-product-image").value.trim(),
+                category: document.getElementById("edit-product-category").value,
+                stock: parseInt(document.getElementById("edit-product-stock").value, 10) || 0,
+                featured: document.getElementById("edit-featured-product").checked
+            };
+
+            try {
+                const response = await AppUtils.apiRequest(`/products/${id}`, {
+                    method: "PUT",
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.success) {
+                    Object.assign(product, updatedData);
+                    renderProducts();
+                    renderStats();
+                    AppUtils.notify("Product updated successfully!", "success");
+                    editModal.style.display = "none";
+                } else {
+                    AppUtils.notify(response.message || "Failed to update product.", "error");
+                }
+            } catch (error) {
+                console.error("EDIT PRODUCT ERROR:", error);
+                AppUtils.notify("Failed to update product.", "error");
+            }
+        });
+    }
+});
+

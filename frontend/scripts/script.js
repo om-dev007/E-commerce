@@ -43,6 +43,8 @@ const fallbackProducts = [
   },
 ];
 
+
+
 let isLoading = false;
 
 const featuredContainer = document.getElementById("featured-products");
@@ -255,7 +257,9 @@ function initializeProductCardFeatures() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  fetchAllProducts();
+  if (featuredContainer || arrivalsContainer) {
+    fetchAllProducts();
+  }
 });
 
 const newsletterForm = document.querySelector("#newsletter .form");

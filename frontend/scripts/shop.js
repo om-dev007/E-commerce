@@ -129,23 +129,10 @@ async function fetchProducts(
                 `/products?${params.toString()}`
             );
 
-        if (!data.success) {
-            const normCat = normalizeCategoryString(currentCategory);
-            const fallback = normCat === 'all'
-                ? fallbackProducts
-                : fallbackProducts.filter(p => categoriesMatch(p.category, currentCategory));
-            if (fallback.length > 0) {
-                currentProducts = fallback;
-                totalPages = 1;
-                applySorting();
-                renderPagination();
-            } else {
-                renderEmptyState("No products found.");
-            }
-            return;
-        }
-
-        currentProducts = Array.isArray(data.products) ? data.products : [];
+        currentProducts =
+            data.success && Array.isArray(data.products)
+                ? data.products
+                : [];
 
         // If backend returned no products for the selected category/search,
         // fall back to local sample products so the shop isn't empty.
@@ -157,15 +144,14 @@ async function fetchProducts(
                 ? fallbackProducts
                 : fallbackProducts.filter(p => categoriesMatch(p.category, currentCategory));
 
-            totalPages =
-                Number(
-                    data.totalPages || 1
-                );
-            if (fallback.length > 0) {
-                    currentProducts = fallback;
-                    totalPages = 1;
-                }
-            }
+            currentProducts = fallback;
+            totalPages = 1;
+        }
+
+        totalPages =
+            Number(
+                data.totalPages || 1
+            );
 
         // sorting
         applySorting();
@@ -174,37 +160,51 @@ async function fetchProducts(
         renderPagination();
 
     } catch (error) {
+
         console.error(
             "SHOP FETCH ERROR:",
             error
         );
-        const normCat = normalizeCategoryString(currentCategory);
-        const fallback = normCat === 'all'
-            ? fallbackProducts
-            : fallbackProducts.filter(p => categoriesMatch(p.category, currentCategory));
-        if (fallback.length > 0) {
-            currentProducts = fallback;
-            totalPages = 1;
-            applySorting();
-            renderPagination();
-        } else {
-            renderEmptyState("No products found.");
-        }
+
+        const normCat =
+            normalizeCategoryString(
+                currentCategory
+            );
+
+        currentProducts =
+            normCat === "all"
+                ? fallbackProducts
+                : fallbackProducts.filter(
+                    (product) =>
+                        categoriesMatch(
+                            product.category,
+                            currentCategory
+                        )
+                );
+
+        totalPages =
+            1;
+
+        applySorting();
+        renderPagination();
     }
 }
 
 // EMPTY STATE
-function renderEmptyState(message) {
-    if (!elements.productContainer) return;
-    const isError = message.toLowerCase().includes("failed") || message.toLowerCase().includes("error");
-    elements.productContainer.innerHTML = `
-        <div class="empty-state-container">
-            <div class="empty-state-icon">${isError ? '📡' : '🛍️'}</div>
-            <h3 class="empty-state-title">${isError ? "Couldn't load products" : "No products found"}</h3>
-            <p class="empty-state-message">${isError ? "Please check your connection and try again." : message}</p>
-            ${isError ? `<button class="retry-btn" onclick="window.fetchProducts(1)">🔄 Retry</button>` : ''}
-        </div>
-    `;
+function renderEmptyState(
+    message
+) {
+    if (
+        !elements.productContainer
+    ) {
+        return;
+    }
+    elements.productContainer.innerHTML =
+        `
+            <div class="empty-products">
+                <h3>${message}</h3>
+            </div>
+        `;
 }
 
 // STAR RATINGS
@@ -251,8 +251,7 @@ function getRatingLabel(product) {
 
 // PRODUCT CARD
 function createProductCard(
-    product,
-    wishlistIds = null
+    product
 ) {
     const displayName =
         product.name ||
@@ -260,10 +259,6 @@ function createProductCard(
 
     const stock =
         Number(product.stock) || 0;
-
-    const isWishlisted = (wishlistIds instanceof Set)
-        ? wishlistIds.has(String(product.id))
-        : AppUtils.getWishlist().some(item => String(item.id) === String(product.id));
 
     return `
         <div
@@ -318,7 +313,7 @@ function createProductCard(
                     : `
                         <div style="position: absolute; bottom: 20px; right: 12px; display: flex; gap: 8px; z-index: 2;">
                             <button class="wishlist-btn-shop cart" data-id="${product.id}" aria-label="Add to Wishlist" style="position: relative; bottom: 0; right: 0;">
-                                <i class="${ isWishlisted ? 'fas' : 'far' } fa-heart"></i>
+                                <i class="${ AppUtils.getWishlist().some(item => String(item.id) === String(product.id)) ? 'fas' : 'far' } fa-heart"></i>
                             </button>
                             <button class="add-to-cart-icon cart" aria-label="Add to cart" style="position: relative; bottom: 0; right: 0;">
                                 <i class="fal fa-shopping-cart"></i>
@@ -352,11 +347,10 @@ function renderProducts(products = []) {
     }
 
     const fragment = document.createDocumentFragment();
-    const wishlistIds = new Set(AppUtils.getWishlist().map((item) => String(item.id)));
 
     displayList.forEach((product) => {
         const wrapper = document.createElement('div');
-        wrapper.innerHTML = createProductCard(product, wishlistIds);
+        wrapper.innerHTML = createProductCard(product);
         const card = wrapper.firstElementChild;
         if (card) {
             setupProductCard(card, product);
@@ -417,12 +411,6 @@ function setupProductCard(
         async (event) => {
             event.preventDefault();
             event.stopPropagation();
-
-            // cart is account-bound: guests must sign in first
-            if (!AppUtils.requireLogin("Please sign in to add items to your cart")) {
-                return;
-            }
-
             const item = {
                 id: product.id,
                 name:
@@ -452,64 +440,8 @@ function setupProductCard(
                 }
 
                 // fallback cart
-                let cart =
-                    AppUtils.getCart();
-
-                const existingIndex =
-                    cart.findIndex(
-                        (p) =>
-                            p.id ===
-                            item.id
-                    );
-
-                    const stock =
-                        Number(product.stock) || 0;
-
-                    if (
-                        existingIndex >= 0
-                    ) {
-
-                        if (
-                            cart[existingIndex].qty + 1 >
-                            stock
-                        ) {
-
-                            AppUtils.notify(
-                                `Only ${stock} item(s) available`,
-                                "error"
-                            );
-
-                            return;
-                        }
-
-                        cart[
-                            existingIndex
-                        ].qty += 1;
-
-                    } else {
-
-                        if (
-                            stock <= 0
-                        ) {
-
-                            AppUtils.notify(
-                                "Product out of stock",
-                                "error"
-                            );
-
-                            return;
-                        }
-
-                        item.stock =
-                            stock;
-
-                        cart.push(
-                            item
-                        );
-                    }
-
-                AppUtils.saveCart(
-                    cart
+                AppUtils.addCartItem(
+                    item
                 );
 
                 if (
@@ -527,7 +459,7 @@ function setupProductCard(
                 }
 
                 AppUtils.notify(
-                    "Added to cart =���n+�",
+                    "Added to cart 🛍️",
                     "success"
                 );
 
@@ -551,24 +483,19 @@ function setupProductCard(
         wishlistBtn.addEventListener("click", async (event) => {
             event.preventDefault();
             event.stopPropagation();
-
-            // wishlist is account-bound: guests must sign in first
-            if (!AppUtils.requireLogin("Please sign in to use your wishlist")) {
-                return;
-            }
-
+            
             // Re-use logic from product-actions-home.js if it's available, otherwise fallback
             if (typeof window.toggleWishlist === "function") {
                 await window.toggleWishlist(product);
             } else {
                 let wishlist = AppUtils.getWishlist();
                 const exists = wishlist.some(item => String(item.id) === String(product.id));
-                const user = AppUtils.getUser();
+                const token = AppUtils.getToken();
 
                 if (exists) {
                     wishlist = wishlist.filter(item => String(item.id) !== String(product.id));
                     AppUtils.notify("Removed from wishlist", "info");
-                    if (user) {
+                    if (token) {
                         try {
                             await AppUtils.apiRequest("/wishlist/remove", {
                                 method: "POST",
@@ -579,7 +506,7 @@ function setupProductCard(
                 } else {
                     wishlist.push(product);
                     AppUtils.notify("Added to wishlist ❤️", "success");
-                    if (user) {
+                    if (token) {
                         try {
                             await AppUtils.apiRequest("/wishlist/add", {
                                 method: "POST",
@@ -588,7 +515,6 @@ function setupProductCard(
                         } catch (e) {}
                     }
                 }
-                // saveWishlist persists locally and syncs the whole list to the backend
                 AppUtils.saveWishlist(wishlist);
                 
                 // Update DOM icons dynamically
@@ -805,7 +731,7 @@ function renderPagination() {
         );
 
     prevBtn.innerText =
-        "G�� Prev";
+        "← Prev";
 
     prevBtn.className = 
         "pagination-btn";
@@ -853,7 +779,7 @@ function renderPagination() {
         );
 
     nextBtn.innerText =
-        "Next G��";
+        "Next →";
 
     nextBtn.className = 
         "pagination-btn";
@@ -889,6 +815,4 @@ document.addEventListener(
         setupSorting();
     }
 );
-window.fetchProducts = fetchProducts;
 })()
-

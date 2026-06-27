@@ -885,10 +885,7 @@ document.querySelectorAll(
     );
 });
 
-
-// ========================================
-// Password Strength Meter (Issue #166)
-// ========================================
+// Password Strength Meter
 function evaluatePasswordStrength(password) {
     let score = 0;
     const tips = [];
